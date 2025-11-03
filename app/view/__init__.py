@@ -1,1 +1,1 @@
-from.view_ahorcado import view_ahorcado
+from.view_ahorcado import viewAhorcado

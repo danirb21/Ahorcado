@@ -1,7 +1,7 @@
 class User:
-   def __init__(self, nombre, password):
-       self.nombre=nombre;
-       self.password;
+    errors=0  
+    def __init__(self, nombre):
+       self.nombre=nombre
       
     
     
