@@ -52,14 +52,14 @@ class viewAhorcado(tk.Tk):
     
     def getInputText(self):
         text=self.input_text.get("1.0",'end-1c')
-        text=text.strip().replace(" ","")
+        text=text.strip().replace(" ","").lower()
         return text
     
     def clearInputText(self):
         self.input_text.delete("1.0", "end")
     
     def getLabelWord(self):
-        return self.word_label.cget("text")
+        return self.word_label.cget("text").lower()
     
     def drawAhorcado(self, errors):
         self.t.pensize(2)
