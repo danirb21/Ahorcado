@@ -36,7 +36,7 @@ class viewAhorcado(tk.Tk):
         self.send_letter = tk.Button(self.input_frame, text="Enviar letra")
         self.send_letter.pack(side="right", padx=10)
     
-    def setLabelWord(self,word):
+    def set_label_word(self,word):
         self.word_label.config(text=word)
     
     def _on_enter_pressed(self, event):
@@ -46,22 +46,26 @@ class viewAhorcado(tk.Tk):
     # Evitar que el Enter agregue un salto de línea
         return "break"
     
-    def listenerSendLetter(self, callback):
+    def listener_send_Letter(self, callback):
          self.send_letter.config(command=callback)
          self.input_text.bind("<Return>", callback)
     
-    def getInputText(self):
+    def get_input_text(self):
         text=self.input_text.get("1.0",'end-1c')
         text=text.strip().replace(" ","").lower()
         return text
     
-    def clearInputText(self):
+    def clear_input_text(self):
         self.input_text.delete("1.0", "end")
     
-    def getLabelWord(self):
+    def get_label_word(self):
         return self.word_label.cget("text").lower()
     
-    def drawAhorcado(self, errors):
+    def _on_close(self,callback): 
+        if callable(callback):
+            self.protocol("WM_DELETE_WINDOW", callback)
+    
+    def draw_ahorcado(self, errors):
         self.t.pensize(2)
         self.t.speed(0)
         self.t.penup()

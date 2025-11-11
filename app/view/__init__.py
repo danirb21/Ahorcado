@@ -1,1 +1,2 @@
 from.view_ahorcado import viewAhorcado
+from.view_configuracion import ViewConfiguracion
