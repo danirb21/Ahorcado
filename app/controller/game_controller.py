@@ -7,7 +7,6 @@ from tkinter import messagebox
 
 class GameController:
     def __init__(self,cpu:Cpu,user:User,view_ahorcado:viewAhorcado, view_configuracion:ViewConfiguracion):
-        self.errores=0
         self.cpu=cpu
         self.user=user
         self.view=view_ahorcado
@@ -22,19 +21,19 @@ class GameController:
     
     
     def on_default_errors_selected(self):
-        self.cpu.number_try=9
+        self.cpu.number_try=10
         self.view_conf.destroy()
         self.view.deiconify()
     
     def on_button_play(self):
         bol=True
         try:
-            if self.view_conf.get_numero_errores()<9 and self.view_conf.get_numero_errores()>0:
+            if self.view_conf.get_numero_errores()<10 and self.view_conf.get_numero_errores()>0:
                 self.cpu.number_try=self.view_conf.get_numero_errores()
                     
             else:
                 bol=False
-                raise ValueError("El numero es menor que 0 o mayor que 9")
+                raise ValueError("El numero es menor que 0 o mayor que 10")
         except (ValueError,TypeError):
             try:
                 if self.view_conf.get_numero_errores()!='':
@@ -44,7 +43,7 @@ class GameController:
                     "Por favor, introduce un número entero válido."
                     )  
                 else:
-                    self.cpu.number_try=9  
+                    self.cpu.number_try=10
             except ValueError:
                 bol=False
                 messagebox.showerror(
@@ -56,7 +55,7 @@ class GameController:
             self.view.deiconify()
             
     def send_letter(self, event=None):
-        #print(self.cpu.word)
+        print(self.cpu.word)
         bol=False
         indices=[]
         if quitar_tildes(self.view.get_input_text())!=self.cpu.word:    
@@ -73,13 +72,12 @@ class GameController:
                 if word_label==self.cpu.word:
                     self.view.mostrar_ganado()
             else:
+                self.user.errors+=1
                 if self.user.errors==self.cpu.number_try:
-                    self.user.errors+=1
                     self.view.clear_input_text()
                     self.view.draw_ahorcado(self.user.errors)
                     self.view.mostrar_perdido(self.cpu.word)   
                 else:
-                    self.user.errors+=1
                     self.view.clear_input_text()
                     self.view.draw_ahorcado(self.user.errors)             
         else:

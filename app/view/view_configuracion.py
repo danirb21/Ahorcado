@@ -5,7 +5,8 @@ class ViewConfiguracion(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Configuración del Ahorcado")
-        self.geometry("400x250")
+        #self.geometry("400x250")
+        self.geometry("500x250")
         self.configure(bg="lightgray")
         # ---- Título ----
         self.label_titulo = tk.Label(
@@ -16,34 +17,45 @@ class ViewConfiguracion(tk.Tk):
         )
         self.label_titulo.pack(pady=20)
 
-        # ---- Botón para usar errores por defecto ----
-        self.btn_default = tk.Button(
-            self,
-            text="Usar número de errores por defecto (9)",
-            font=("Arial", 12),
-            bg="white",
-            relief="raised"
-        )
-        self.btn_default.pack(pady=10)
-
-        # ---- Zona de configuración personalizada ----
         self.frame_custom = tk.Frame(self, bg="lightgray")
         self.frame_custom.pack(pady=10)
 
         self.label_custom = tk.Label(
             self.frame_custom,
-            text="Número de errores personalizados(<9):",
-            font=("Arial", 12),
-            bg="lightgray"
+            text="Selecciona el número de errores (o usa el valor por defecto):",
+            font=("Arial", 11),
+            bg="lightgray",
+            anchor="w",
+            justify="left",
         )
-        self.label_custom.pack(side="left", padx=5)
+        self.label_custom.pack(pady=(0, 8))
+
+        self.frame_input = tk.Frame(self.frame_custom, bg="lightgray")
+        self.frame_input.pack()
 
         self.entry_errores = tk.Entry(
-            self.frame_custom,
+            self.frame_input,
             width=5,
             font=("Arial", 12)
         )
-        self.entry_errores.pack(side="left")
+        self.entry_errores.pack(side="left", padx=5)
+
+        self.btn_default = tk.Button(
+            self.frame_input,
+            text="Usar valor por defecto (10)",
+            font=("Arial", 11),
+            bg="white",
+            relief="raised"
+        )
+        self.btn_default.pack(side="left", padx=10)
+        self.label_hint = tk.Label(
+        self.frame_custom,
+        text="(El numero de errores seleccionados debe ser menor o igual a 10)",
+        font=("Arial", 9, "italic"),
+        fg="gray",
+        bg="lightgray"
+        )
+        self.label_hint.pack(pady=(5, 0))
 
         # ---- Botón confirmar ----
         self.btn_confirmar = tk.Button(
