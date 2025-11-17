@@ -62,3 +62,6 @@ class RegisterView(tk.Tk):
 
     def show_error(self, message):
         messagebox.showerror("Error", message)
+    
+    def show_passwords_equals(self, message):
+        messagebox.showerror("Contraseñas incorrectas", message)

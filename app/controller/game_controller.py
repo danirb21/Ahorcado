@@ -6,8 +6,11 @@ from app.view.view_configuracion import ViewConfiguracion
 from app.view.view_login import LoginView
 from app.view.view_mode import ViewMode
 import requests
+import re
 from app.view.view_register import RegisterView
 from tkinter import messagebox
+
+PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]).{8,}$"
 
 API_BASE_URL="http://localhost:5000"
 class GameController:
@@ -41,6 +44,9 @@ class GameController:
         self.view_conf.destroy()
         self.view.deiconify()
     
+    def validar_password(self, pwd):
+        return re.match(PASSWORD_REGEX, pwd) is not None
+    
     def on_button_login(self):
         try:
             username=self.login_view.get_username()
@@ -48,8 +54,8 @@ class GameController:
             #Hacer Filtros Campo Username y password
             json={"username":username,
                 "password":password}
-            requests.post(API_BASE_URL+"/login",json=json)
-            if(requests.status_codes!=401):
+            response=requests.post(API_BASE_URL+"/login",json=json)
+            if(response.status_code!=401):
                 self.login_view.destroy()
                 self.view_conf.deiconify()
             else:
@@ -59,7 +65,31 @@ class GameController:
     
     def on_button_register(self):
         username=self.register_view.get_username()
-        passwords=self.register_view.get_passwords()
+        pwd,pwd1=self.register_view.get_passwords()
+        
+        if(pwd!=pwd1):
+            self.register_view.show_passwords_equals("Las contraseñas no coinciden")  
+            
+        if not username or not pwd or not pwd1:
+            self.register_view.show_error("Todos los campos son obligatorios.")
+
+        # 3. Validación de contraseña usando regex
+        if not self.validar_password(pwd1):
+            self.register_view.show_error(
+                "Debe tener 8+ caracteres, una mayúscula, un número y un símbolo."
+            )
+        try:
+            response = requests.post(
+                f"{API_BASE_URL}/register",
+                json={"username": username, "password": pwd1}
+            )
+        except Exception:
+            self.register_view.show_error("Error al conectar con el servidor.")
+        
+        if(response.status_code==409):
+            self.register_view.show_error("Ya existe un usuario con ese nombre")
+
+        data = response.json()  
         #Filtro passwords
         
     def on_button_register_in_login(self):

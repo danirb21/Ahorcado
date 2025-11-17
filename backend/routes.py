@@ -4,6 +4,12 @@ from sqlalchemy import desc
 from flask import request,jsonify
 from .db import db
 from .models import User
+import re
+
+PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]).{8,}$"
+
+def validar_password(pwd):
+    return re.match(PASSWORD_REGEX, pwd) is not None
 
 app_routes=Blueprint("routes",__name__)
 
@@ -15,6 +21,16 @@ def register():
 
     if User.query.filter_by(username=username).first():
         return jsonify({"msg": "El usuario ya existe"}), 409
+    
+    if not username or not password:
+        return jsonify({"error": "Faltan campos"}), 400
+
+    if not validar_password(password):
+        return jsonify({"error": "Contraseña débil"}), 400
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({"error": "El usuario ya existe"}), 409
+
     
     #Añadirle el ID de jwt al user
     u = User(username=username)

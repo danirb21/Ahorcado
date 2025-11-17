@@ -10,7 +10,7 @@ class User(db.Model):
     id:Mapped[int]=mapped_column(Integer,primary_key=True,autoincrement=True)
     username: Mapped[str]= mapped_column(String(25))
     password_hash: Mapped[str]=mapped_column(String(28))   
-    score: Mapped[int]
+    score: Mapped[int]=mapped_column(nullable=True)
     
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, username={self.username!r}, password={self.fullname!r}, score={self.score})"

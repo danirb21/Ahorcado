@@ -1,5 +1,7 @@
 Funcionamiento_Turtle.txt
 Reglas_Estructura.txt
 cargarFichero.py
-/backend/docker/.env
 Modelo_datos.txt
+instance/
+*.sqlite
+*.db
