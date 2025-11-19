@@ -1,8 +1,8 @@
 import tkinter as tk
-
-class ViewMode(tk.Tk):
-    def __init__(self):
-        super().__init__()
+from tkinter import messagebox
+class ViewMode(tk.Toplevel):
+    def __init__(self,parent):
+        super().__init__(parent)
         self.title("Seleccionar modo de juego")
         self.geometry("400x280")
         self.configure(bg="lightgray")
@@ -56,3 +56,10 @@ class ViewMode(tk.Tk):
     def listener_modo_personalizado(self, callback):
         """El controlador maneja la acción de modo personalizado."""
         self.btn_personalizado.config(command=callback)
+        
+    def show_guest(self):
+        return messagebox.showwarning("Modo Invitado","No puedes acceder en modo Invitado al Competitivo")
+
+    def _on_close(self,callback):   
+        if callable(callback):
+            self.protocol("WM_DELETE_WINDOW", callback)

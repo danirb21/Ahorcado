@@ -2,11 +2,11 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-class LoginView(tk.Tk):
-    def __init__(self):
-        super().__init__()
+class LoginView(tk.Toplevel):
+    def __init__(self,parent):
+        super().__init__(parent)
         self.title("Inicio de Sesión: AHORCADO")
-        self.geometry("350x260")
+        self.geometry("350x320")
         self.configure(bg="lightgray")
         self.resizable(False, False)
 
@@ -38,6 +38,16 @@ class LoginView(tk.Tk):
         # ---- Botón Ir a Registro ----
         self.btn_register = tk.Button(self, text="Crear cuenta", font=("Arial", 11), bg="white")
         self.btn_register.pack(pady=5)
+        
+        self.label_guest = tk.Label(
+            self,
+            text="Entrar como invitado",
+            font=("Arial", 10, "underline"),
+            fg="gray",
+            bg="lightgray",
+            cursor="hand2"
+        )
+        self.label_guest.pack(pady=15)
 
     # -------- Métodos MVC --------
     def get_username(self):
@@ -51,6 +61,10 @@ class LoginView(tk.Tk):
 
     def listener_register(self, callback):
         self.btn_register.config(command=callback)
+        
+    def listener_guest(self, callback):
+        # Evento de click en el texto
+        self.label_guest.bind("<Button-1>", lambda e: callback())
 
     def show_error(self, message):
         messagebox.showerror("Error", message)

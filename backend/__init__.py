@@ -1,13 +1,15 @@
 from .models import User
 import os
 import secrets
-
+from flask_jwt_extended import JWTManager
 from flask import Flask
 
+jwt=JWTManager()
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    app.config["JWT_SECRET_KEY"]="dev"  #Cambiar en produccion
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'ahorcado.sqlite'),
@@ -32,6 +34,8 @@ def create_app(test_config=None):
     # Inicializar base de datos
     from .db import init_db
     init_db(app)
+    
+    jwt.init_app(app)
     
     from .routes import app_routes
     app.register_blueprint(app_routes)

@@ -1,47 +1,58 @@
 from app.model.cpu import Cpu
+from app.model.game import Game
 from app.model.player_local import PlayerLocal
 from app.view.view_ahorcado import viewAhorcado
 from app.utils.text_utils import quitar_tildes
 from app.view.view_configuracion import ViewConfiguracion
 from app.view.view_login import LoginView
 from app.view.view_mode import ViewMode
+from app.view.view_leaderboard import LeaderboardView
+from app.model.word_provider import WordProvider
+from app.view.view_competitive_result import CompetitiveResultView
+import tkinter as tk
 import requests
 import re
 from app.view.view_register import RegisterView
 from tkinter import messagebox
 
-PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]).{8,}$"
+PASSWORD_REGEX = r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$" 
+#6 word, at least letter and number
 
 API_BASE_URL="http://localhost:5000"
 class GameController:
-    def __init__(self,cpu:Cpu,player_local:PlayerLocal,view_ahorcado:viewAhorcado, view_configuracion:ViewConfiguracion, view_login: LoginView, view_register: RegisterView, view_mode:ViewMode):
-        self.cpu=cpu
-        self.player_local=player_local
-        self.view=view_ahorcado
-        self.view_conf=view_configuracion
-        self.login_view=view_login
-        self.register_view=view_register
-        self.mode_view=view_mode
-        self.view.withdraw()
-        self.view_conf.withdraw()
-        self.register_view.withdraw()
-        self.view_conf.withdraw()
-        self.view_conf.listener_errores_default(self.on_default_errors_selected)
-        self.view_conf.listener_confirmar(self.on_button_play)
-        self.view_conf._on_close(self.terminar_programa)
+    def __init__(self,root:tk):
+        #self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
+        self.cpu=None
+        self.root=root
+        self.mode_guest=False
+        self.headers=None
+        self.player_local=PlayerLocal()
+        self.game=None
+        self.jwt_token=None
+        self.is_compe=False
+        self.mode=""
+        self.view=None
+        #self.view.withdraw()
+        #self.view_conf.withdraw()
+        #self.register_view.withdraw()
+        #self.view_conf.withdraw()
+        #self.mode_view.withdraw()
+        self.login_view=LoginView(root)
         self.login_view._on_close(self.terminar_programa)
-        self.register_view._on_close(self.terminar_programa)
-        self.view._on_close(self.terminar_programa)
-        self.view.set_label_word(" ".join("_" * len(cpu.word)))
-        self.view.listener_send_Letter(self.send_letter)
         self.login_view.listener_login(self.on_button_login)
-        self.register_view.listener_register(self.on_button_register)
         self.login_view.listener_register(self.on_button_register_in_login)
+        self.login_view.listener_guest(self.on_guest)
+        self.login_view.mainloop()
     
     
     def on_default_errors_selected(self):
+        self.view=viewAhorcado(self.root)
+        self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
         self.cpu.number_try=10
-        self.view_conf.destroy()
+        self.view._on_close(self.terminar_programa)
+        self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
+        self.view.listener_send_Letter(self.send_letter) 
+        self.view_conf.withdraw()
         self.view.deiconify()
     
     def validar_password(self, pwd):
@@ -57,7 +68,13 @@ class GameController:
             response=requests.post(API_BASE_URL+"/login",json=json)
             if(response.status_code!=401):
                 self.login_view.destroy()
-                self.view_conf.deiconify()
+                #self.view_conf.deiconify()
+                self.mode_view=ViewMode(self.root)
+                self.mode_view._on_close(self.terminar_programa)
+                self.mode_view.listener_modo_personalizado(self.on_button_personalizado)
+                self.mode_view.listener_modo_competitivo(self.on_button_competitivo)
+                self.mode_view.deiconify()
+                self.jwt_token=response.json()["access_token"]
             else:
                 self.login_view.show_dont_exist("El usuario o contraseña no son adecuadas")
         except Exception:
@@ -70,32 +87,73 @@ class GameController:
         if(pwd!=pwd1):
             self.register_view.show_passwords_equals("Las contraseñas no coinciden")  
             
-        if not username or not pwd or not pwd1:
+        elif not username or not pwd or not pwd1:
             self.register_view.show_error("Todos los campos son obligatorios.")
 
         # 3. Validación de contraseña usando regex
-        if not self.validar_password(pwd1):
+        elif not self.validar_password(pwd1):
             self.register_view.show_error(
-                "Debe tener 8+ caracteres, una mayúscula, un número y un símbolo."
+                "Debe tener 6+ caracteres, y debe contener al menos una letra y un digito."
             )
-        try:
-            response = requests.post(
-                f"{API_BASE_URL}/register",
-                json={"username": username, "password": pwd1}
-            )
-        except Exception:
-            self.register_view.show_error("Error al conectar con el servidor.")
+        else:
+            try:
+                response = requests.post(
+                    f"{API_BASE_URL}/register",
+                    json={"username": username, "password": pwd1}
+                )
+                if(response.status_code==409):                
+                    self.register_view.show_error("Ya existe un usuario con ese nombre")
+                else:
+                    self.register_view.show_msg_user()
+                    self.register_view.withdraw() 
+                    self.login_view.deiconify()
+            except Exception:
+                self.register_view.show_error("Error al conectar con el servidor.")
         
-        if(response.status_code==409):
-            self.register_view.show_error("Ya existe un usuario con ese nombre")
+    def on_back(self):
+        self.register_view.withdraw() 
+        self.login_view.deiconify()
+    
+    def on_guest(self):
+        self.mode_guest=True
+        self.login_view.withdraw()
+        self.mode_view=ViewMode(self.root)
+        self.mode_view._on_close(self.terminar_programa)
+        self.mode_view.listener_modo_personalizado(self.on_button_personalizado)
+        self.mode_view.listener_modo_competitivo(self.on_button_competitivo)
+        self.mode_view.deiconify()
 
-        data = response.json()  
-        #Filtro passwords
+    def on_button_personalizado(self):
+        self.mode_view.withdraw()
+        self.view_conf=ViewConfiguracion(self.root)
+        self.view_conf.listener_errores_default(self.on_default_errors_selected)
+        self.view_conf.listener_confirmar(self.on_button_play)
+        self.view_conf._on_close(self.terminar_programa)
+        self.view_conf.deiconify()
+        
+    def on_button_competitivo(self):
+        if(not self.mode_guest):
+            self.is_compe=True
+            self.view=viewAhorcado(self.root)
+            self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
+            self.cpu.number_try=10
+            self.view.listener_send_Letter(self.send_letter)
+            self.view._on_close(self.terminar_programa)
+            self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
+            self.mode_view.withdraw()
+            self.view.deiconify()
+        else:
+            self.mode_view.show_guest()
         
     def on_button_register_in_login(self):
         self.login_view.withdraw()
+        self.register_view=RegisterView(self.root)
+        self.register_view._on_close(self.terminar_programa)
+        self.register_view.listener_register(self.on_button_register)
+        self.register_view.listener_back(self.on_back)
         self.register_view.deiconify()
     def on_button_play(self):
+        self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
         bol=True
         try:
             if self.view_conf.get_numero_errores()<10 and self.view_conf.get_numero_errores()>0:
@@ -121,7 +179,12 @@ class GameController:
                     "Por favor, introduce un número entero válido."
                 )  
         if(bol): 
-            self.view_conf.destroy()
+            self.is_compe=False
+            self.view_conf.withdraw()
+            self.view=viewAhorcado(self.root)
+            self.view._on_close(self.terminar_programa)
+            self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
+            self.view.listener_send_Letter(self.send_letter)
             self.view.deiconify()
             
     def send_letter(self, event=None):
@@ -140,19 +203,28 @@ class GameController:
                 self.view.clear_input_text()
                 word_label=self.view.get_label_word().replace(" ","")
                 if word_label==self.cpu.word:
-                    self.view.mostrar_ganado()
+                    #self.view.mostrar_ganado()
+                    self.player_local.errors=0
+                    self.game=Game(self.player_local,self.cpu.word,True)
+                    self.mostrar_resultado(self.game)
             else:
                 self.player_local.errors+=1
                 if self.player_local.errors==self.cpu.number_try:
                     self.view.clear_input_text()
                     self.view.draw_ahorcado(self.player_local.errors)
-                    self.view.mostrar_perdido(self.cpu.word)   
+                    #self.view.mostrar_perdido(self.cpu.word) 
+                    self.player_local.errors=0
+                    self.game=Game(self.player_local,self.cpu.word,False)
+                    self.mostrar_resultado(self.game)
                 else:
                     self.view.clear_input_text()
-                    self.view.draw_ahorcado(self.player_local.errors)             
+                    self.view.draw_ahorcado(self.player_local.errors)         
         else:
             self.view.set_label_word(self.cpu.word)
-            self.view.mostrar_ganado()
+            #self.view.mostrar_ganado()
+            self.player_local.errors=0
+            self.game=Game(self.player_local,self.cpu.word,True)
+            self.mostrar_resultado(self.game)
             
     def reemplazar_caracter(self, palabra, indices, letra):
     # Quitar espacios y convertir a lista
@@ -165,11 +237,65 @@ class GameController:
     # Volver a unir con espacios
         return " ".join(chars)
 
+    def mostrar_resultado(self,game:Game):
+        palabra = self.cpu.word
+        if self.is_compe:
+            self.headers = {
+            "Authorization": f"Bearer {self.jwt_token}",
+            "Content-Type":"application/json"
+            }
+        # Aquí mostrarías tu CompetitiveResultView
+            self.view_resultados = CompetitiveResultView(
+                parent=self.root
+            )
+            user=game.player
+            #Llamar api  updatescore.
+            user.score=game.get_game_score()
+            response=requests.post(API_BASE_URL+"/updatescore",headers=self.headers,json={"score":user.score})
+            #print(response.text)
+            #print(response.json())
+            #print(response.status_code)
+            total_score=response.json()["total_score"]
+            self.view_resultados.set_correct_word(game.word)
+            self.view_resultados.set_points(user.score,total_score)
+            self.view_resultados.set_result(game.won)   
+            self.view_resultados.listener_menu(self.on_btn_menu)
+            self.view_resultados.listener_leaderboard(self.on_btn_leaderboards)
+        # Conectar botones según tu controlador
+        # result.btn_menu.config(...)
+        else:
+        # MODO PERSONALIZADO → messagebox
+            if game.won:
+                self.view.mostrar_ganado()
+                self.mode_view.deiconify()
+            else:
+                self.view.mostrar_perdido(palabra)
+                self.mode_view.deiconify()
+                
+        self.view.withdraw()
+           
+    def on_btn_menu(self):
+        self.view_resultados.withdraw()
+        self.mode_view.deiconify()
     
+    def on_btn_leaderboards(self):
+            print(self.view_resultados.grab_status())
+            self.view_resultados.grab_release()
+            self.leaderboard_view=LeaderboardView(self.root)
+            response=requests.get(API_BASE_URL+"/leaderboard",headers=self.headers)
+            print(response.text)
+            leaderboard=response.json()     
+            self.leaderboard_view.update_table(leaderboard)
+            self.leaderboard_view.listener_back(self.on_back_leaderboard)
+            self.leaderboard_view._on_close(self.terminar_programa)
+            self.view_resultados.withdraw()
+            self.leaderboard_view.deiconify()
+    
+    def on_back_leaderboard(self):
+        self.leaderboard_view.destroy()
+        self.view_resultados.deiconify()
     def terminar_programa(self):
     # Destruir solo si la ventana sigue viva
-       if hasattr(self, 'view'):
-            self.view.destroy()
        import sys
        sys.exit()
         

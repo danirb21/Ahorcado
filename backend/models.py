@@ -13,7 +13,7 @@ class User(db.Model):
     score: Mapped[int]=mapped_column(nullable=True)
     
     def __repr__(self) -> str:
-        return f"User(id={self.id!r}, username={self.username!r}, password={self.fullname!r}, score={self.score})"
+        return f"User(id={self.id!r}, username={self.username!r}, password={self.password_hash!r}, score={self.score})"
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password).decode()

@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-class RegisterView(tk.Tk):
-    def __init__(self):
-        super().__init__()
+class RegisterView(tk.Toplevel):
+    def __init__(self,parent):
+        super().__init__(parent)
         self.title("Registro")
         self.geometry("370x300")
         self.configure(bg="lightgray")
@@ -62,6 +62,9 @@ class RegisterView(tk.Tk):
 
     def show_error(self, message):
         messagebox.showerror("Error", message)
+    
+    def show_msg_user(self):
+        messagebox.showinfo("Usuario Creado", "Usuario creado Correctamente")
     
     def show_passwords_equals(self, message):
         messagebox.showerror("Contraseñas incorrectas", message)

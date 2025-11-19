@@ -2,9 +2,9 @@ import tkinter as tk
 import turtle as turtle
 from tkinter import messagebox
 
-class viewAhorcado(tk.Tk):
-    def __init__(self):
-        super().__init__()
+class viewAhorcado(tk.Toplevel):
+    def __init__(self,parent):
+        super().__init__(parent)
         self.title("Ahorcado")
         # Frame principal
         self.frame = tk.Frame(self, bg="lightgray", padx=10, pady=10)
@@ -142,8 +142,6 @@ class viewAhorcado(tk.Tk):
             
     def mostrar_ganado(self):
         messagebox.showinfo("🎉 ¡Has ganado!", "¡Felicidades, adivinaste la palabra!")
-        self.destroy()  # Cierra la ventana principal
 
     def mostrar_perdido(self, palabra_correcta: str):
         messagebox.showinfo("💀 Has perdido", f"La palabra era: {palabra_correcta}")
-        self.destroy()

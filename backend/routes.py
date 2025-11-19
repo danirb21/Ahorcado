@@ -6,7 +6,7 @@ from .db import db
 from .models import User
 import re
 
-PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]).{8,}$"
+PASSWORD_REGEX = r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$"
 
 def validar_password(pwd):
     return re.match(PASSWORD_REGEX, pwd) is not None
@@ -52,7 +52,7 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({"msg": "Credenciales inválidas"}), 401
 
-    token = create_access_token(identity=user.id)
+    token = create_access_token(identity=str(user.id))
 
     return jsonify({"access_token": token})
 
@@ -61,22 +61,31 @@ def login():
 @app_routes.route("/updatescore", methods=["POST"])
 @jwt_required()
 def update_score():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
     score = data["score"]
-
+    print("USER ID:", user_id)
+    print("HEADERS:", request.headers)
+    print("JSON:", request.get_json(silent=True))
+    
     user = User.query.get(user_id)
-    user.score += score
-    db.session.add(user)
+    if user.score is None:
+        user.score = 0
+        
+    user.score = user.score+score
+    total_score=user.score
     db.session.commit()
+    return jsonify({"total_score":total_score}),200
+    
 
 @app_routes.route("/leaderboard", methods=["GET"])
 @jwt_required()
 def get_leaderboard():
     #user=User(id=1,username="Pepito",password="323",score=43,)
     leaderboard=db.session.query(User).order_by(desc(User.score)).all()
+    print(leaderboard)
     leaderboard_dict = [
-        {"id": u.id, "username": u.username, "score": u.score} 
+        {"username": u.username, "score": u.score} 
         for u in leaderboard
     ]
     return jsonify(leaderboard_dict)

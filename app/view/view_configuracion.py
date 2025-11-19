@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
 
-class ViewConfiguracion(tk.Tk):
-    def __init__(self):
-        super().__init__()
+class ViewConfiguracion(tk.Toplevel):
+    def __init__(self,parent):
+        super().__init__(parent)
         self.title("Configuración del Ahorcado")
         #self.geometry("400x250")
         self.geometry("500x250")

@@ -2,6 +2,4 @@ Funcionamiento_Turtle.txt
 Reglas_Estructura.txt
 cargarFichero.py
 Modelo_datos.txt
-instance/
-*.sqlite
-*.db
+instance/ahorcado.sqlite
