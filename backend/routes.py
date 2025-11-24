@@ -64,9 +64,9 @@ def update_score():
     user_id = int(get_jwt_identity())
     data = request.get_json()
     score = data["score"]
-    print("USER ID:", user_id)
-    print("HEADERS:", request.headers)
-    print("JSON:", request.get_json(silent=True))
+    #print("USER ID:", user_id)
+    #print("HEADERS:", request.headers)
+    #print("JSON:", request.get_json(silent=True))
     
     user = User.query.get(user_id)
     if user.score is None:
@@ -81,9 +81,8 @@ def update_score():
 @app_routes.route("/leaderboard", methods=["GET"])
 @jwt_required()
 def get_leaderboard():
-    #user=User(id=1,username="Pepito",password="323",score=43,)
     leaderboard=db.session.query(User).order_by(desc(User.score)).all()
-    print(leaderboard)
+    #print(leaderboard)
     leaderboard_dict = [
         {"username": u.username, "score": u.score} 
         for u in leaderboard

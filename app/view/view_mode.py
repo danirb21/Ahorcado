@@ -4,7 +4,7 @@ class ViewMode(tk.Toplevel):
     def __init__(self,parent):
         super().__init__(parent)
         self.title("Seleccionar modo de juego")
-        self.geometry("400x280")
+        self.geometry("400x320")
         self.configure(bg="lightgray")
 
         # ---- Título ----
@@ -19,7 +19,7 @@ class ViewMode(tk.Toplevel):
         # ---- Texto explicativo del competitivo ----
         self.label_competitivo_info = tk.Label(
             self,
-            text="Modo competitivo:\nRequiere iniciar sesión\npara guardar puntuación.",
+            text="Modo competitivo:\nRequiere iniciar sesión",
             font=("Arial", 12),
             bg="lightgray",
             fg="black",
@@ -47,6 +47,21 @@ class ViewMode(tk.Toplevel):
             width=20
         )
         self.btn_personalizado.pack(pady=10)
+        
+        # --- HEADER SUPERIOR ---
+        
+        self.btn_back = tk.Button(
+            self,
+            text="← Volver",
+            font=("Arial", 14, "bold"),
+            bg="#e0e0e0",
+            relief="flat",
+            cursor="hand2",
+            padx=10,
+            pady=5
+        )
+        self.btn_back.pack(side="left", padx=10, pady=10)
+        
 
     # LISTENERS
     def listener_modo_competitivo(self, callback):
@@ -56,6 +71,9 @@ class ViewMode(tk.Toplevel):
     def listener_modo_personalizado(self, callback):
         """El controlador maneja la acción de modo personalizado."""
         self.btn_personalizado.config(command=callback)
+        
+    def listener_back(self, callback):
+        self.btn_back.config(command=callback)
         
     def show_guest(self):
         return messagebox.showwarning("Modo Invitado","No puedes acceder en modo Invitado al Competitivo")

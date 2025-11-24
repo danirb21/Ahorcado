@@ -78,5 +78,12 @@ class CompetitiveResultView(tk.Toplevel):
 
     def listener_leaderboard(self, callback):
         self.btn_leaderboard.config(command=callback)
+        
     def listener_retry(self, callback):
         self.btn_retry.config(command=callback) 
+    
+    def _on_close(self,callback):
+    
+        if callable(callback):
+            self.protocol("WM_DELETE_WINDOW", callback)
+    

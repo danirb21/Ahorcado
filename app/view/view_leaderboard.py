@@ -48,7 +48,7 @@ class LeaderboardView(tk.Toplevel):
         # --- Botón Volver ---
         self.btn_back = tk.Button(
             self,
-            text="Volver al Menu",
+            text="Volver",
             font=("Arial", 12),
             bg="white"
         )

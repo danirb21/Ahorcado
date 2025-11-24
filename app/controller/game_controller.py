@@ -9,7 +9,9 @@ from app.view.view_mode import ViewMode
 from app.view.view_leaderboard import LeaderboardView
 from app.model.word_provider import WordProvider
 from app.view.view_competitive_result import CompetitiveResultView
+from app.view.loading_widget import LoadingWidget
 import tkinter as tk
+import threading
 import requests
 import re
 from app.view.view_register import RegisterView
@@ -237,59 +239,100 @@ class GameController:
     # Volver a unir con espacios
         return " ".join(chars)
 
-    def mostrar_resultado(self,game:Game):
+  
+
+    def mostrar_resultado(self, game: Game):
         palabra = self.cpu.word
+
+        self.view.withdraw()
+
+        # ---- MODO COMPETITIVO ----
         if self.is_compe:
+
             self.headers = {
-            "Authorization": f"Bearer {self.jwt_token}",
-            "Content-Type":"application/json"
+                "Authorization": f"Bearer {self.jwt_token}",
+                "Content-Type": "application/json"
             }
-        # Aquí mostrarías tu CompetitiveResultView
-            self.view_resultados = CompetitiveResultView(
-                parent=self.root
-            )
-            user=game.player
-            #Llamar api  updatescore.
-            user.score=game.get_game_score()
-            response=requests.post(API_BASE_URL+"/updatescore",headers=self.headers,json={"score":user.score})
-            #print(response.text)
-            #print(response.json())
-            #print(response.status_code)
-            total_score=response.json()["total_score"]
+
+            
+            self.view_resultados = CompetitiveResultView(parent=self.root)
             self.view_resultados.set_correct_word(game.word)
-            self.view_resultados.set_points(user.score,total_score)
-            self.view_resultados.set_result(game.won)   
+            self.view_resultados.set_result(game.won)
             self.view_resultados.listener_menu(self.on_btn_menu)
             self.view_resultados.listener_leaderboard(self.on_btn_leaderboards)
-        # Conectar botones según tu controlador
-        # result.btn_menu.config(...)
+            self.view_resultados._on_close(self.terminar_programa)
+
+            user = game.player
+            user.score = game.get_game_score()
+            
+            loading = LoadingWidget(self.view_resultados,"Mostrando Resultados...")
+            loading.animar()
+            # ---- HILO PARA LA PETICIÓN A LA API ----
+            def tarea_update_score():
+                try:
+                    response = requests.post(
+                        API_BASE_URL + "/updatescore",
+                        headers=self.headers,
+                        json={"score": user.score}
+                    )
+
+                    data = response.json()
+                    total_score = data["total_score"]
+
+                except Exception as e:
+                    total_score = None  
+                    print(f"Error actualizando score: {e}")
+
+                # Actualizar UI desde el hilo principal
+                def actualizar_ui():
+                    loading.destroy_widget()
+                    if total_score is not None:
+                        self.view_resultados.set_points(user.score, total_score)
+                    else:
+                        self.view_resultados.set_points(user.score, "Error")
+
+                self.root.after(0,actualizar_ui)
+
+            # Lanzar hilo
+            threading.Thread(target=tarea_update_score, daemon=True).start()
+
+    # ---- MODO PERSONALIZADO ----
         else:
-        # MODO PERSONALIZADO → messagebox
             if game.won:
                 self.view.mostrar_ganado()
-                self.mode_view.deiconify()
             else:
                 self.view.mostrar_perdido(palabra)
-                self.mode_view.deiconify()
-                
-        self.view.withdraw()
+
+            self.mode_view.deiconify()
+
            
     def on_btn_menu(self):
         self.view_resultados.withdraw()
         self.mode_view.deiconify()
     
     def on_btn_leaderboards(self):
-            print(self.view_resultados.grab_status())
-            self.view_resultados.grab_release()
-            self.leaderboard_view=LeaderboardView(self.root)
+        #print(self.view_resultados.grab_status())
+        self.view_resultados.grab_release()
+        self.leaderboard_view=LeaderboardView(self.root)
+        #print(response.text)  
+        self.leaderboard_view.listener_back(self.on_back_leaderboard)
+        self.leaderboard_view._on_close(self.terminar_programa)
+        self.view_resultados.withdraw()
+        self.leaderboard_view.deiconify()
+        
+        loading=LoadingWidget(self.leaderboard_view,"Cargando")
+        loading.animar()            
+        def task_leaderboard():
             response=requests.get(API_BASE_URL+"/leaderboard",headers=self.headers)
-            print(response.text)
-            leaderboard=response.json()     
-            self.leaderboard_view.update_table(leaderboard)
-            self.leaderboard_view.listener_back(self.on_back_leaderboard)
-            self.leaderboard_view._on_close(self.terminar_programa)
-            self.view_resultados.withdraw()
-            self.leaderboard_view.deiconify()
+            leaderboard=response.json()   
+            def update_ui_leaderboard():
+                loading.destroy_widget()
+                self.leaderboard_view.update_table(leaderboard)      
+                
+            self.root.after(0,update_ui_leaderboard)  
+              
+        threading.Thread(target=task_leaderboard, daemon=True).start()
+        
     
     def on_back_leaderboard(self):
         self.leaderboard_view.destroy()

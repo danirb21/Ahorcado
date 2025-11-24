@@ -11,6 +11,6 @@ def init_db(app):
     if not os.path.exists(db_path):
         with app.app_context():
             db.create_all()
-            print("✔ Base de datos creada por primera vez.")
+            print("Base de datos creada por primera vez.")
     else:
         print("✔ Base de datos ya existente, no se crea de nuevo.")

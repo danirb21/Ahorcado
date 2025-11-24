@@ -5,6 +5,8 @@ class Game:
         self.word=word
         self.won=won
     def get_game_score(self):
-        score = (len(self.word) * 10) + ((9 - self.player.errors) * 5) #Formula Temporal
+        scorematch = 50 if self.won else -30
+        score = (len(self.word) * 10) - (self.player.errors * 5) + scorematch
         return score
+
     
