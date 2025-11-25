@@ -45,7 +45,7 @@ class CompetitiveResultView(tk.Toplevel):
 
         # ----- BOTONES -----
         button_frame = tk.Frame(self, bg="#d0d0d0")
-        button_frame.pack(pady=30)
+        button_frame.pack(pady=40)
 
         self.btn_leaderboard = ttk.Button(button_frame, text="📊 Ver Leaderboard")
         self.btn_leaderboard.grid(row=0, column=0, padx=10)

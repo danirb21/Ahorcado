@@ -16,6 +16,7 @@ import requests
 import re
 from app.view.view_register import RegisterView
 from tkinter import messagebox
+from app.utils.ui_utils import WindowPosition
 
 PASSWORD_REGEX = r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$" 
 #6 word, at least letter and number
@@ -69,9 +70,11 @@ class GameController:
                 "password":password}
             response=requests.post(API_BASE_URL+"/login",json=json)
             if(response.status_code!=401):
+                WindowPosition.store(self.login_view)
                 self.login_view.destroy()
                 #self.view_conf.deiconify()
                 self.mode_view=ViewMode(self.root)
+                WindowPosition.apply(self.mode_view)
                 self.mode_view._on_close(self.terminar_programa)
                 self.mode_view.listener_modo_personalizado(self.on_button_personalizado)
                 self.mode_view.listener_modo_competitivo(self.on_button_competitivo)
@@ -107,7 +110,9 @@ class GameController:
                     self.register_view.show_error("Ya existe un usuario con ese nombre")
                 else:
                     self.register_view.show_msg_user()
+                    WindowPosition.store(self.register_view)
                     self.register_view.withdraw() 
+                    WindowPosition.apply(self.login_view)
                     self.login_view.deiconify()
             except Exception:
                 self.register_view.show_error("Error al conectar con el servidor.")
@@ -115,6 +120,11 @@ class GameController:
     def on_back(self):
         self.register_view.withdraw() 
         self.login_view.deiconify()
+        
+    def on_back_conf(self):
+        self.view_conf.withdraw()
+        self.view_conf.grab_release()
+        self.mode_view.deiconify()
     
     def on_guest(self):
         self.mode_guest=True
@@ -126,9 +136,12 @@ class GameController:
         self.mode_view.deiconify()
 
     def on_button_personalizado(self):
+        WindowPosition.store(self.mode_view)
         self.mode_view.withdraw()
         self.view_conf=ViewConfiguracion(self.root)
+        WindowPosition.apply(self.view_conf)
         self.view_conf.listener_errores_default(self.on_default_errors_selected)
+        self.view_conf.listener_back(self.on_back_conf)
         self.view_conf.listener_confirmar(self.on_button_play)
         self.view_conf._on_close(self.terminar_programa)
         self.view_conf.deiconify()
@@ -142,7 +155,9 @@ class GameController:
             self.view.listener_send_Letter(self.send_letter)
             self.view._on_close(self.terminar_programa)
             self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
+            WindowPosition.store(self.mode_view)
             self.mode_view.withdraw()
+            WindowPosition.apply(self.view)
             self.view.deiconify()
         else:
             self.mode_view.show_guest()
@@ -182,8 +197,10 @@ class GameController:
                 )  
         if(bol): 
             self.is_compe=False
+            WindowPosition.store(self.view_conf)
             self.view_conf.withdraw()
             self.view=viewAhorcado(self.root)
+            WindowPosition.apply(self.view)
             self.view._on_close(self.terminar_programa)
             self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
             self.view.listener_send_Letter(self.send_letter)
@@ -243,7 +260,7 @@ class GameController:
 
     def mostrar_resultado(self, game: Game):
         palabra = self.cpu.word
-
+        WindowPosition.store(self.view)
         self.view.withdraw()
 
         # ---- MODO COMPETITIVO ----
@@ -256,11 +273,13 @@ class GameController:
 
             
             self.view_resultados = CompetitiveResultView(parent=self.root)
+            WindowPosition.apply(self.view_resultados)
             self.view_resultados.set_correct_word(game.word)
             self.view_resultados.set_result(game.won)
             self.view_resultados.listener_menu(self.on_btn_menu)
             self.view_resultados.listener_leaderboard(self.on_btn_leaderboards)
             self.view_resultados._on_close(self.terminar_programa)
+            self.view_resultados.listener_retry(self.on_btn_retry)
 
             user = game.player
             user.score = game.get_game_score()
@@ -307,8 +326,23 @@ class GameController:
 
            
     def on_btn_menu(self):
+        WindowPosition.store(self.view_resultados)
         self.view_resultados.withdraw()
+        self.view_resultados.grab_release()
+        WindowPosition.apply(self.mode_view)
         self.mode_view.deiconify()
+        
+    def on_btn_retry(self):
+        self.is_compe=True
+        self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
+        self.cpu.number_try=10
+        self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
+        self.view.clear_ahorcado()   
+        WindowPosition.store(self.view_resultados) 
+        self.view_resultados.withdraw()
+        self.view_resultados.grab_release()
+        WindowPosition.apply(self.view)
+        self.view.deiconify()    
     
     def on_btn_leaderboards(self):
         #print(self.view_resultados.grab_status())
@@ -317,7 +351,9 @@ class GameController:
         #print(response.text)  
         self.leaderboard_view.listener_back(self.on_back_leaderboard)
         self.leaderboard_view._on_close(self.terminar_programa)
+        WindowPosition.store(self.view_resultados)
         self.view_resultados.withdraw()
+        WindowPosition.apply(self.leaderboard_view)
         self.leaderboard_view.deiconify()
         
         loading=LoadingWidget(self.leaderboard_view,"Cargando")
@@ -335,7 +371,9 @@ class GameController:
         
     
     def on_back_leaderboard(self):
+        WindowPosition.store(self.leaderboard_view)
         self.leaderboard_view.destroy()
+        WindowPosition.apply(self.view_resultados)
         self.view_resultados.deiconify()
     def terminar_programa(self):
     # Destruir solo si la ventana sigue viva

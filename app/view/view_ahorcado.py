@@ -74,6 +74,7 @@ class viewAhorcado(tk.Toplevel):
             # Base
             self.t.goto(-100, -100)
             self.t.pendown()
+            self.t.setheading(0)
             self.t.forward(150)
             self.t.penup()
         elif errors == 2:
@@ -139,7 +140,9 @@ class viewAhorcado(tk.Toplevel):
             self.t.pendown()
             self.t.forward(35)
             self.t.penup()
-            
+     
+    def clear_ahorcado(self):
+        self.t.clear()       
     def mostrar_ganado(self):
         messagebox.showinfo("🎉 ¡Has ganado!", "¡Felicidades, adivinaste la palabra!")
 

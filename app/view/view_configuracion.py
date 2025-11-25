@@ -67,6 +67,19 @@ class ViewConfiguracion(tk.Toplevel):
         )
         self.btn_confirmar.pack(pady=15)
 
+        # ---- Frame inferior para botón Volver ----
+          # ---- Botón Volver usando place() en esquina inferior izquierda ----
+        self.btn_back = tk.Button(
+            self,
+            text="← Volver",
+            font=("Arial", 14, "bold"),
+            bg="#e0e0e0",
+            relief="flat",
+            cursor="hand2",
+            pady=5
+        )
+        self.btn_back.place(relx=0.01, rely=0.95, anchor="sw")
+
     def get_numero_errores(self):
         num_error=0
         if(self.entry_errores.get()==''):
@@ -87,6 +100,9 @@ class ViewConfiguracion(tk.Toplevel):
     def listener_confirmar(self, callback):
         """Asocia el botón confirmar al controlador."""
         self.btn_confirmar.config(command=callback)
+    
+    def listener_back(self,callback):
+        self.btn_back.config(command=callback)
 
     # ---- Métodos de utilidad opcionales ----
     def mostrar_error(self, mensaje):
