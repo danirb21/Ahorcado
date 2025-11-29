@@ -2,4 +2,6 @@ Funcionamiento_Turtle.txt
 Reglas_Estructura.txt
 cargarFichero.py
 Modelo_datos.txt
+app/data/quitar_espacios.py
 instance/ahorcado.sqlite
+README.md

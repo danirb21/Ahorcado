@@ -78,6 +78,7 @@ class GameController:
                 self.mode_view._on_close(self.terminar_programa)
                 self.mode_view.listener_modo_personalizado(self.on_button_personalizado)
                 self.mode_view.listener_modo_competitivo(self.on_button_competitivo)
+                self.mode_view.listener_back(self.on_back_mode)
                 self.mode_view.deiconify()
                 self.jwt_token=response.json()["access_token"]
             else:
@@ -126,13 +127,26 @@ class GameController:
         self.view_conf.grab_release()
         self.mode_view.deiconify()
     
+    def on_back_mode(self):
+        WindowPosition.store(self.mode_view)
+        self.mode_view.withdraw()
+        self.login_view=LoginView(self.root)           
+        self.login_view._on_close(self.terminar_programa)
+        self.login_view.listener_login(self.on_button_login)
+        self.login_view.listener_register(self.on_button_register_in_login)
+        self.login_view.listener_guest(self.on_guest)
+        WindowPosition.apply(self.login_view)
+        self.login_view.deiconify()
     def on_guest(self):
         self.mode_guest=True
+        WindowPosition.store(self.login_view)
         self.login_view.withdraw()
         self.mode_view=ViewMode(self.root)
         self.mode_view._on_close(self.terminar_programa)
         self.mode_view.listener_modo_personalizado(self.on_button_personalizado)
         self.mode_view.listener_modo_competitivo(self.on_button_competitivo)
+        self.mode_view.listener_back(self.on_back_mode)
+        WindowPosition.apply(self.mode_view)
         self.mode_view.deiconify()
 
     def on_button_personalizado(self):
