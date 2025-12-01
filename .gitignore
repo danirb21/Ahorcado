@@ -5,3 +5,4 @@ Modelo_datos.txt
 app/data/quitar_espacios.py
 instance/ahorcado.sqlite
 README.md
+backend/add_user.py

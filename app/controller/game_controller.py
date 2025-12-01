@@ -27,6 +27,7 @@ class GameController:
         #self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
         self.cpu=None
         self.root=root
+        self.username=None
         self.mode_guest=False
         self.headers=None
         self.player_local=PlayerLocal()
@@ -63,10 +64,10 @@ class GameController:
     
     def on_button_login(self):
         try:
-            username=self.login_view.get_username()
+            self.username=self.login_view.get_username()
             password=self.login_view.get_password()
             #Hacer Filtros Campo Username y password
-            json={"username":username,
+            json={"username":self.username,
                 "password":password}
             response=requests.post(API_BASE_URL+"/login",json=json)
             if(response.status_code!=401):
@@ -118,8 +119,10 @@ class GameController:
             except Exception:
                 self.register_view.show_error("Error al conectar con el servidor.")
         
-    def on_back(self):
+    def on_back_register(self):
+        WindowPosition.store(self.register_view)
         self.register_view.withdraw() 
+        WindowPosition.apply(self.login_view)
         self.login_view.deiconify()
         
     def on_back_conf(self):
@@ -177,11 +180,13 @@ class GameController:
             self.mode_view.show_guest()
         
     def on_button_register_in_login(self):
+        WindowPosition.store(self.login_view)
         self.login_view.withdraw()
         self.register_view=RegisterView(self.root)
         self.register_view._on_close(self.terminar_programa)
         self.register_view.listener_register(self.on_button_register)
-        self.register_view.listener_back(self.on_back)
+        self.register_view.listener_back(self.on_back_register)
+        WindowPosition.apply(self.register_view)
         self.register_view.deiconify()
     def on_button_play(self):
         self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
@@ -377,7 +382,7 @@ class GameController:
             leaderboard=response.json()   
             def update_ui_leaderboard():
                 loading.destroy_widget()
-                self.leaderboard_view.update_table(leaderboard)      
+                self.leaderboard_view.update_table(leaderboard,self.username)      
                 
             self.root.after(0,update_ui_leaderboard)  
               

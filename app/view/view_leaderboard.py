@@ -55,16 +55,16 @@ class LeaderboardView(tk.Toplevel):
         self.btn_back.pack(pady=10)
 
     # ---------------- Métodos MVC ---------------- #
-
+    """
     def update_table(self, data_list):
-        """
+        
         Rellena el leaderboard con una lista de diccionarios:
         [
           {"username": "Juan", "score": 120},
           {"username": "Ana", "score": 95},
           ...
         ]
-        """
+        
         # Limpiar tabla
         for row in self.table.get_children():
             self.table.delete(row)
@@ -76,7 +76,48 @@ class LeaderboardView(tk.Toplevel):
                 "", tk.END,
                 values=(item["username"],item["score"])
             )
+    """
+    # Modifica la firma del método en tu clase LeaderboardView
+    def update_table(self, data_list, current_username):
+        """
+        Rellena el leaderboard, destaca la fila del usuario actual
+        y mueve el scrollbar a su posición.
+        """
+        # ... (código de limpieza)
+        for row in self.table.get_children():
+            self.table.delete(row)
 
+        # Creamos un estilo especial para el usuario actual
+        self.table.tag_configure('highlight', background='lightblue', font=('Arial', 10, 'bold'))
+
+        # Variable para guardar el ID interno de la fila del usuario
+        user_item_id = None 
+
+        # Insertar datos
+        for i, item in enumerate(data_list):
+            if item["score"] is not None:
+                
+                # --- 1. Determinar el Tag de la fila ---
+                tags = ()
+                if item["username"] == current_username:
+                    tags = ('highlight',)  # Aplica el estilo 'highlight'
+                
+                # Insertar la fila
+                item_id = self.table.insert(
+                    "", tk.END,
+                    text=f"{i+1}", # Opcional: usar el campo 'text' para mostrar el Rank
+                    values=(item["username"], item["score"]),
+                    tags=tags # Aplica el tag si es el usuario actual
+                )
+                
+                # Guardar el ID interno del Treeview si es nuestro usuario
+                if item["username"] == current_username:
+                    user_item_id = item_id
+
+        # --- 2. Desplazar la vista si el usuario fue encontrado ---
+        if user_item_id:
+            self.table.see(user_item_id) # Este método hace scroll directamente al elemento
+        
     def listener_back(self, callback):
         """Asocia el botón volver al controlador."""
         self.btn_back.config(command=callback)
