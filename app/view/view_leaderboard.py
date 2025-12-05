@@ -7,7 +7,7 @@ class LeaderboardView(tk.Toplevel):
         super().__init__(parent)
 
         self.title("🏆 Leaderboard - Ahorcado")
-        self.geometry("400x400")
+        self.geometry("500x400")
         self.configure(bg="lightgray")
         self.resizable(False, False)
 
@@ -30,7 +30,7 @@ class LeaderboardView(tk.Toplevel):
         # --- Treeview Tabla ---
         self.table = ttk.Treeview(
             frame_table,
-            columns=("username", "score"),
+            columns=("Ranking","username", "score"),
             show="headings",
             yscrollcommand=scrollbar.set,
             height=12
@@ -38,8 +38,10 @@ class LeaderboardView(tk.Toplevel):
 
         self.table.heading("username", text="Usuario")
         self.table.heading("score", text="Puntos")
+        self.table.heading("Ranking",text="Ranking")
 
         self.table.column("username", width=180, anchor="center")
+        self.table.column("Ranking", width=55, anchor="center", stretch=False)
         self.table.column("score", width=80, anchor="center")
 
         self.table.pack(fill="both", expand=True)
@@ -106,7 +108,7 @@ class LeaderboardView(tk.Toplevel):
                 item_id = self.table.insert(
                     "", tk.END,
                     text=f"{i+1}", # Opcional: usar el campo 'text' para mostrar el Rank
-                    values=(item["username"], item["score"]),
+                    values=(i+1,item["username"], item["score"]),
                     tags=tags # Aplica el tag si es el usuario actual
                 )
                 

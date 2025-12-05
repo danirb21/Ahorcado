@@ -6,3 +6,9 @@ app/data/quitar_espacios.py
 instance/ahorcado.sqlite
 backend/add_user.py
 *.env
+**__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+*.spec
