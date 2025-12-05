@@ -9,9 +9,9 @@ jwt=JWTManager()
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config["JWT_SECRET_KEY"]="dev"  #Cambiar en produccion
+    app.config["JWT_SECRET_KEY"]=os.getenv("JWT_SECRET_KEY")  #Cambiar en produccion
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY=os.getenv("FLASK_SECRET_KEY"),
         DATABASE=os.path.join(app.instance_path, 'ahorcado.sqlite'),
         SQLALCHEMY_DATABASE_URI=f"sqlite:///{os.path.join(app.instance_path, 'ahorcado.sqlite')}",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
