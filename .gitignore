@@ -4,6 +4,5 @@ cargarFichero.py
 Modelo_datos.txt
 app/data/quitar_espacios.py
 instance/ahorcado.sqlite
-README.md
 backend/add_user.py
-backend/.env
+*.env
