@@ -14,14 +14,16 @@ import tkinter as tk
 import threading
 import requests
 import re
+import os
 from app.view.view_register import RegisterView
 from tkinter import messagebox
 from app.utils.ui_utils import WindowPosition
+from dotenv import load_dotenv
 
 PASSWORD_REGEX = r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$" 
+load_dotenv()
 #6 word, at least letter and number
 
-API_BASE_URL="http://localhost:5000"
 class GameController:
     def __init__(self,root:tk):
         #self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
@@ -69,7 +71,7 @@ class GameController:
             #Hacer Filtros Campo Username y password
             json={"username":self.username,
                 "password":password}
-            response=requests.post(API_BASE_URL+"/login",json=json)
+            response=requests.post(os.getenv("API_BASE_URL")+"/login",json=json)
             if(response.status_code!=401):
                 WindowPosition.store(self.login_view)
                 self.login_view.destroy()
@@ -105,7 +107,7 @@ class GameController:
         else:
             try:
                 response = requests.post(
-                    f"{API_BASE_URL}/register",
+                    f"{os.getenv("API_BASE_URL")}/register",
                     json={"username": username, "password": pwd1}
                 )
                 if(response.status_code==409):                
@@ -309,7 +311,7 @@ class GameController:
             def tarea_update_score():
                 try:
                     response = requests.post(
-                        API_BASE_URL + "/updatescore",
+                        os.getenv("API_BASE_URL") + "/updatescore",
                         headers=self.headers,
                         json={"score": user.score}
                     )
@@ -378,7 +380,7 @@ class GameController:
         loading=LoadingWidget(self.leaderboard_view,"Cargando")
         loading.animar()            
         def task_leaderboard():
-            response=requests.get(API_BASE_URL+"/leaderboard",headers=self.headers)
+            response=requests.get(os.getenv("API_BASE_URL")+"/leaderboard",headers=self.headers)
             leaderboard=response.json()   
             def update_ui_leaderboard():
                 loading.destroy_widget()

@@ -1,0 +1,13 @@
+pyinstaller==6.17.0
+pyinstaller-hooks-contrib==2025.10
+altgraph==0.17.5
+pefile==2024.8.26
+pywin32-ctypes==0.2.3
+requests==2.32.5
+python-dotenv==1.2.1
+colorama==0.4.6
+click==8.3.0
+certifi==2025.11.12
+charset-normalizer==3.4.4
+idna==3.11
+urllib3==2.5.0
