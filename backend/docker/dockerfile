@@ -13,5 +13,5 @@ COPY run.py .
 # Render usará $PORT
 EXPOSE 5000
 
-CMD waitress-serve --listen=0.0.0.0:$PORT run:create_app
+CMD waitress-serve --listen=0.0.0.0:$PORT run:app
 
