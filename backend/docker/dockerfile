@@ -1,7 +1,16 @@
 FROM python:3.12-slim
-WORKDIR /backend
-COPY requirements.txt .
+
+# Directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+COPY backend/requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 10000
-CMD ["waitress-serve", "--listen=0.0.0.0:$PORT", "backend:create_app"]
+
+COPY backend backend
+COPY run.py .
+
+# Render usará $PORT
+EXPOSE 5000
+
+CMD ["waitress-serve", "--listen=0.0.0.0:$PORT", "run:create_app"]
