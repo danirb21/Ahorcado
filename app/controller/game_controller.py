@@ -10,6 +10,8 @@ from app.view.view_leaderboard import LeaderboardView
 from app.model.word_provider import WordProvider
 from app.view.view_competitive_result import CompetitiveResultView
 from app.view.loading_widget import LoadingWidget
+from app.utils.config import load_environment_variables
+from app.utils.config import get_resource_path
 import tkinter as tk
 import threading
 import requests
@@ -20,12 +22,10 @@ import os
 from app.view.view_register import RegisterView
 from tkinter import messagebox
 from app.utils.ui_utils import WindowPosition
-from dotenv import load_dotenv
+
 
 PASSWORD_REGEX = r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$" 
-load_dotenv()
-#6 word, at least letter and number
-
+load_environment_variables()
 class GameController:
     def __init__(self,root:tk):
         #self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
@@ -55,7 +55,7 @@ class GameController:
     
     def on_default_errors_selected(self):
         self.view=viewAhorcado(self.root)
-        self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
+        self.cpu=Cpu(WordProvider.getRandomWord(get_resource_path("app/data/palabras.txt")))
         self.cpu.number_try=10
         self.view._on_close(self.terminar_programa)
         self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
@@ -210,7 +210,7 @@ class GameController:
         if(not self.mode_guest):
             self.is_compe=True
             self.view=viewAhorcado(self.root)
-            self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
+            self.cpu=Cpu(WordProvider.getRandomWord(get_resource_path("app/data/palabras.txt")))
             self.cpu.number_try=10
             self.view.listener_send_Letter(self.send_letter)
             self.view._on_close(self.terminar_programa)
@@ -232,7 +232,7 @@ class GameController:
         WindowPosition.apply(self.register_view)
         self.register_view.deiconify()
     def on_button_play(self):
-        self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
+        self.cpu=Cpu(WordProvider.getRandomWord(get_resource_path("app/data/palabras.txt")))
         bol=True
         try:
             if self.view_conf.get_numero_errores()<10 and self.view_conf.get_numero_errores()>0:
@@ -396,7 +396,7 @@ class GameController:
         
     def on_btn_retry(self):
         self.is_compe=True
-        self.cpu=Cpu(WordProvider.getRandomWord("app/data/palabras.txt"))
+        self.cpu=Cpu(WordProvider.getRandomWord(get_resource_path("app/data/palabras.txt")))
         self.cpu.number_try=10
         self.view.set_label_word(" ".join("_" * len(self.cpu.word)))
         self.view.clear_ahorcado()   
