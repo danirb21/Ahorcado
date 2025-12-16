@@ -11,7 +11,7 @@ COPY backend backend
 COPY run.py .
 
 # Render usará $PORT
-EXPOSE 5000
+EXPOSE $PORT
 
 CMD waitress-serve --listen=0.0.0.0:$PORT run:app
 
