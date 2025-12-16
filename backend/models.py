@@ -9,7 +9,7 @@ class User(db.Model):
     __tablename__="user"
     id:Mapped[int]=mapped_column(Integer,primary_key=True,autoincrement=True)
     username: Mapped[str]= mapped_column(String(25))
-    password_hash: Mapped[str]=mapped_column(String(28))   
+    password_hash: Mapped[str]=mapped_column(String(80))   
     score: Mapped[int]=mapped_column(nullable=True)
     
     def __repr__(self) -> str:

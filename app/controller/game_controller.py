@@ -13,6 +13,8 @@ from app.view.loading_widget import LoadingWidget
 import tkinter as tk
 import threading
 import requests
+import traceback
+import logging
 import re
 import os
 from app.view.view_register import RegisterView
@@ -66,60 +68,99 @@ class GameController:
     
     def on_button_login(self):
         try:
-            self.username=self.login_view.get_username()
-            password=self.login_view.get_password()
-            #Hacer Filtros Campo Username y password
-            json={"username":self.username,
-                "password":password}
-            response=requests.post(os.getenv("API_BASE_URL")+"/login",json=json)
-            if(response.status_code!=401):
+            username = self.login_view.get_username()
+            password = self.login_view.get_password()
+
+            # Filtro de campos vacíos
+            if not username or not password:
+                self.login_view.show_error("Debe rellenar todos los campos.")
+                return
+
+            response = requests.post(
+                os.getenv("API_BASE_URL") + "/login",
+                json={"username": username, "password": password}
+            )
+
+            if response.status_code == 200:
+                # Login correcto → abrir ventana de modos
+                self.jwt_token = response.json()["access_token"]
+                self.username=username
                 WindowPosition.store(self.login_view)
                 self.login_view.destroy()
-                #self.view_conf.deiconify()
-                self.mode_view=ViewMode(self.root)
+                self.mode_view = ViewMode(self.root)
                 WindowPosition.apply(self.mode_view)
                 self.mode_view._on_close(self.terminar_programa)
                 self.mode_view.listener_modo_personalizado(self.on_button_personalizado)
                 self.mode_view.listener_modo_competitivo(self.on_button_competitivo)
                 self.mode_view.listener_back(self.on_back_mode)
                 self.mode_view.deiconify()
-                self.jwt_token=response.json()["access_token"]
+
+            elif response.status_code == 401:
+                self.login_view.show_dont_exist("El usuario o la contraseña no son correctas")
+
+            elif response.status_code == 400:
+                # Faltan campos
+                self.login_view.show_error("Deber rellenar todos los campos")
+
             else:
-                self.login_view.show_dont_exist("El usuario o contraseña no son adecuadas")
+                self.login_view.show_error("Error inesperado al iniciar sesión.")
+
         except Exception:
-            self.login_view.show_error("Error")           
+            logging.error(traceback.format_exc())
+            self.login_view.show_error("Error al conectar con el servidor.")
+
     
     def on_button_register(self):
-        username=self.register_view.get_username()
-        pwd,pwd1=self.register_view.get_passwords()
-        
-        if(pwd!=pwd1):
-            self.register_view.show_passwords_equals("Las contraseñas no coinciden")  
-            
-        elif not username or not pwd or not pwd1:
-            self.register_view.show_error("Todos los campos son obligatorios.")
+        username = self.register_view.get_username()
+        pwd, pwd1 = self.register_view.get_passwords()
 
-        # 3. Validación de contraseña usando regex
-        elif not self.validar_password(pwd1):
+        # Contraseñas iguales
+        if pwd != pwd1:
+            self.register_view.show_passwords_equals("Las contraseñas no coinciden")
+            return
+
+        # Campos vacíos
+        if not username or not pwd or not pwd1:
+            self.register_view.show_error("Todos los campos son obligatorios.")
+            return
+
+        # Validación local
+        if not self.validar_password(pwd1):
             self.register_view.show_error(
-                "Debe tener 6+ caracteres, y debe contener al menos una letra y un digito."
+                "Debe tener 6+ caracteres, y debe contener al menos una letra y un dígito."
             )
-        else:
-            try:
-                response = requests.post(
-                    f"{os.getenv("API_BASE_URL")}/register",
-                    json={"username": username, "password": pwd1}
-                )
-                if(response.status_code==409):                
-                    self.register_view.show_error("Ya existe un usuario con ese nombre")
-                else:
-                    self.register_view.show_msg_user()
-                    WindowPosition.store(self.register_view)
-                    self.register_view.withdraw() 
-                    WindowPosition.apply(self.login_view)
-                    self.login_view.deiconify()
-            except Exception:
-                self.register_view.show_error("Error al conectar con el servidor.")
+            return
+
+        try:
+            response = requests.post(
+                f"{os.getenv('API_BASE_URL')}/register",
+                json={"username": username, "password": pwd1}
+            )
+
+            if response.status_code == 201:
+                # Registro OK
+                self.register_view.show_msg_user()
+                WindowPosition.store(self.register_view)
+                self.register_view.withdraw()
+                WindowPosition.apply(self.login_view)
+                self.login_view.deiconify()
+            
+            elif response.status_code == 409:
+                self.register_view.show_error("Ya existe un usuario con ese nombre")
+
+            elif response.status_code == 400:
+                # Contraseña débil o faltan campos
+                error = response.json().get("error", "Datos inválidos")
+                self.register_view.show_error(error)
+
+            else:
+                self.register_view.show_error("Error inesperado en el registro.")
+
+        except Exception:
+            logging.error(traceback.format_exc())
+            self.register_view.show_error("No se pudo conectar con el servidor.")
+
+
         
     def on_back_register(self):
         WindowPosition.store(self.register_view)

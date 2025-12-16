@@ -12,3 +12,4 @@ backend/add_user.py
 build/
 dist/
 *.spec
+migracion_script.py
