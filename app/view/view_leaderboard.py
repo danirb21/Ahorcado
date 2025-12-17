@@ -95,21 +95,22 @@ class LeaderboardView(tk.Toplevel):
         user_item_id = None
 
         # Insertar filas
-        for i, item in enumerate(data_list):
+        ranking=1
+        for _, item in enumerate(data_list):
+            print(item, type(item))
             if item["score"] is not None:
-
                 tags = ('highlight',) if item["username"] == current_username else ()
-
+                
                 item_id = self.table.insert(
                     "",
                     tk.END,
-                    values=(i+1, item["username"], item["score"]),
+                    values=(ranking, item["username"], item["score"]),
                     tags=tags
                 )
 
                 if item["username"] == current_username:
                     user_item_id = item_id
-
+                ranking+=1
         # Hacer scroll al usuario
         if user_item_id:
             self.table.see(user_item_id)
